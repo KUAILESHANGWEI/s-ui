@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/alireza0/s-ui/database/model"
+	"github.com/KUAILESHANGWEI/s-ui/database/model"
 
 	"gorm.io/gorm"
 )

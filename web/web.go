@@ -13,12 +13,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alireza0/s-ui/api"
-	"github.com/alireza0/s-ui/config"
-	"github.com/alireza0/s-ui/logger"
-	"github.com/alireza0/s-ui/middleware"
-	"github.com/alireza0/s-ui/network"
-	"github.com/alireza0/s-ui/service"
+	"github.com/KUAILESHANGWEI/s-ui/api"
+	"github.com/KUAILESHANGWEI/s-ui/config"
+	"github.com/KUAILESHANGWEI/s-ui/logger"
+	"github.com/KUAILESHANGWEI/s-ui/middleware"
+	"github.com/KUAILESHANGWEI/s-ui/network"
+	"github.com/KUAILESHANGWEI/s-ui/service"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/sessions"

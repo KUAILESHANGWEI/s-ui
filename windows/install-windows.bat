@@ -37,12 +37,12 @@ REM Check if WinSW is available
 set "WINSW_PATH=%INSTALL_DIR%\winsw.exe"
 if not exist "%WINSW_PATH%" (
     echo Downloading WinSW...
-    powershell -Command "& {Invoke-WebRequest -Uri 'https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW-x64.exe' -OutFile '%WINSW_PATH%'}"
+    powershell -Command "& {Invoke-WebRequest -Uri 'https://github.com/KUAILESHANGWEI/s-ui/releases/download/external-assets/WinSW-x64.exe' -OutFile '%WINSW_PATH%'}"
     if exist "%WINSW_PATH%" (
         echo WinSW downloaded successfully
     ) else (
         echo Warning: Failed to download WinSW. Service installation will be skipped.
-        echo You can manually download WinSW from: https://github.com/winsw/winsw/releases
+        echo You can manually download WinSW from: https://github.com/KUAILESHANGWEI/s-ui/releases/tag/external-assets
     )
 )
 

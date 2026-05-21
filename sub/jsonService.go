@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/alireza0/s-ui/database"
-	"github.com/alireza0/s-ui/database/model"
-	"github.com/alireza0/s-ui/service"
-	"github.com/alireza0/s-ui/util"
+	"github.com/KUAILESHANGWEI/s-ui/database"
+	"github.com/KUAILESHANGWEI/s-ui/database/model"
+	"github.com/KUAILESHANGWEI/s-ui/service"
+	"github.com/KUAILESHANGWEI/s-ui/util"
 )
 
 const defaultJson = `

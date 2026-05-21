@@ -20,7 +20,7 @@ RUN apk update && apk add --no-cache \
 ENV CC=gcc
 
 RUN CRONET_ARCH="$TARGETARCH" && \
-    CRONET_URL="https://github.com/SagerNet/cronet-go/releases/latest/download/libcronet-linux-${CRONET_ARCH}.so"; \
+    CRONET_URL="https://github.com/KUAILESHANGWEI/s-ui/releases/download/external-assets/libcronet-linux-${CRONET_ARCH}.so"; \
     echo "Downloading $CRONET_URL" && \
     wget -q -O ./libcronet.so "$CRONET_URL" && \
     chmod 755 ./libcronet.so
@@ -34,7 +34,7 @@ RUN if [ "$TARGETARCH" = "arm" ]; then export GOARM=7; [ "$TARGETVARIANT" = "v6"
     -o sui main.go
 
 FROM alpine
-LABEL org.opencontainers.image.authors="alireza7@gmail.com"
+LABEL org.opencontainers.image.source="https://github.com/KUAILESHANGWEI/s-ui"
 ENV TZ=Asia/Tehran
 WORKDIR /app
 RUN set -ex && apk add --no-cache --upgrade bash tzdata ca-certificates nftables

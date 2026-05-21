@@ -1,0 +1,72 @@
+name: Sync upstream release assets
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      UPSTREAM_REPO: alireza0/s-ui
+      TARGET_REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout localized scripts
+        uses: actions/checkout@v6.0.2
+
+      - name: Sync latest upstream release assets
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "$workdir"' EXIT
+
+          tag="$(gh release view --repo "$UPSTREAM_REPO" --json tagName --jq '.tagName')"
+          name="$(gh release view --repo "$UPSTREAM_REPO" --json name --jq '.name // ""')"
+          notes="$(gh release view --repo "$UPSTREAM_REPO" --json body --jq '.body // ""')"
+          prerelease="$(gh release view --repo "$UPSTREAM_REPO" --json isPrerelease --jq '.isPrerelease')"
+
+          if ! gh release view "$tag" --repo "$TARGET_REPO" >/dev/null 2>&1; then
+            args=("$tag" --repo "$TARGET_REPO" --title "${name:-$tag}" --notes "$notes")
+            if [ "$prerelease" = "true" ]; then
+              args+=(--prerelease)
+            fi
+            gh release create "${args[@]}"
+          fi
+
+          mkdir -p "$workdir/assets"
+          gh release download "$tag" --repo "$UPSTREAM_REPO" --dir "$workdir/assets"
+          mkdir -p "$workdir/repacked"
+
+          for asset in "$workdir"/assets/s-ui-linux-*.tar.gz; do
+            [ -e "$asset" ] || continue
+            name="$(basename "$asset")"
+            package_dir="$workdir/work-${name%.tar.gz}"
+            mkdir -p "$package_dir"
+            tar -xzf "$asset" -C "$package_dir"
+            cp s-ui.sh "$package_dir/s-ui/s-ui.sh"
+            cp s-ui.service "$package_dir/s-ui/s-ui.service"
+            (cd "$package_dir" && tar -zcf "$workdir/repacked/$name" s-ui)
+          done
+
+          for asset in "$workdir"/assets/s-ui-windows-*.zip; do
+            [ -e "$asset" ] || continue
+            name="$(basename "$asset")"
+            package_dir="$workdir/work-${name%.zip}"
+            mkdir -p "$package_dir"
+            unzip -q "$asset" -d "$package_dir"
+            cp windows/install-windows.bat "$package_dir/s-ui-windows/install-windows.bat"
+            cp windows/s-ui-windows.bat "$package_dir/s-ui-windows/s-ui-windows.bat"
+            cp windows/uninstall-windows.bat "$package_dir/s-ui-windows/uninstall-windows.bat"
+            cp windows/s-ui-windows.xml "$package_dir/s-ui-windows/s-ui-windows.xml"
+            (cd "$package_dir" && zip -qr "$workdir/repacked/$name" s-ui-windows)
+          done
+
+          find "$workdir/assets" -maxdepth 1 -type f ! -name 's-ui-linux-*.tar.gz' ! -name 's-ui-windows-*.zip' -exec cp {} "$workdir/repacked/" \;
+          if find "$workdir/repacked" -type f | grep -q .; then
+            gh release upload "$tag" "$workdir"/repacked/* --repo "$TARGET_REPO" --clobber
+          fi

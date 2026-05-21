@@ -1,0 +1,61 @@
+name: Sync external release assets
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "43 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TARGET_REPO: ${{ github.repository }}
+      ASSET_TAG: external-assets
+    steps:
+      - name: Ensure asset release exists
+        run: |
+          set -euo pipefail
+          if ! gh release view "$ASSET_TAG" --repo "$TARGET_REPO" >/dev/null 2>&1; then
+            gh release create "$ASSET_TAG" --repo "$TARGET_REPO" \
+              --title "External mirrored assets" \
+              --notes "Mirrored third-party release assets used by builds and installers." \
+              --prerelease
+          fi
+
+      - name: Mirror cronet-go latest assets
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "$workdir"' EXIT
+          gh release download --repo SagerNet/cronet-go --pattern 'libcronet-linux-*.so' --dir "$workdir"
+          gh release download --repo SagerNet/cronet-go --pattern 'libcronet-windows-*.dll' --dir "$workdir"
+          gh release upload "$ASSET_TAG" "$workdir"/* --repo "$TARGET_REPO" --clobber
+
+      - name: Mirror WinSW assets
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "$workdir"' EXIT
+          gh release download v2.12.0 --repo winsw/winsw --pattern 'WinSW-x64.exe' --dir "$workdir"
+          gh release upload "$ASSET_TAG" "$workdir"/* --repo "$TARGET_REPO" --clobber
+
+      - name: Mirror runtime rule assets
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          trap 'rm -rf "$workdir"' EXIT
+          curl -fsSL -o "$workdir/Yacd-meta-gh-pages.zip" "https://github.com/MetaCubeX/Yacd-meta/archive/gh-pages.zip"
+          curl -fsSL -o "$workdir/metacubex-geosite-category-ads-all.srs" "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ads-all.srs"
+          curl -fsSL -o "$workdir/metacubex-geosite-private.srs" "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/private.srs"
+          curl -fsSL -o "$workdir/metacubex-geosite-category-ir.srs" "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ir.srs"
+          curl -fsSL -o "$workdir/metacubex-geosite-cn.srs" "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/cn.srs"
+          curl -fsSL -o "$workdir/metacubex-geoip-private.srs" "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/private.srs"
+          curl -fsSL -o "$workdir/metacubex-geoip-ir.srs" "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/ir.srs"
+          curl -fsSL -o "$workdir/metacubex-geoip-cn.srs" "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs"
+          curl -fsSL -o "$workdir/metacubex-geoip-vn.srs" "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/vn.srs"
+          curl -fsSL -o "$workdir/acme-install.sh" "https://get.acme.sh"
+          gh release upload "$ASSET_TAG" "$workdir"/* --repo "$TARGET_REPO" --clobber

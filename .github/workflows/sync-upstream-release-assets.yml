@@ -67,6 +67,11 @@ jobs:
           done
 
           find "$workdir/assets" -maxdepth 1 -type f ! -name 's-ui-linux-*.tar.gz' ! -name 's-ui-windows-*.zip' -exec cp {} "$workdir/repacked/" \;
+          # Repacked archives differ from upstream; publish matching checksums.
+          if [ -f "$workdir/repacked/SHA256SUMS" ]; then
+            rm "$workdir/repacked/SHA256SUMS"
+            (cd "$workdir/repacked" && sha256sum * > SHA256SUMS)
+          fi
           if find "$workdir/repacked" -type f | grep -q .; then
             gh release upload "$tag" "$workdir"/repacked/* --repo "$TARGET_REPO" --clobber
           fi
